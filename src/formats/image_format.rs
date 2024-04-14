@@ -1,9 +1,9 @@
-use std::io::{BufRead, Read, Seek};
+use crate::error::{ThumbError, ThumbResult};
+use image::io::Reader as ImageReader;
 use image::{DynamicImage, ImageFormat};
 use mime::Mime;
-use image::io::Reader as ImageReader;
+use std::io::{BufRead, Read, Seek};
 use webp::Decoder as WebpDecoder;
-use crate::error::{ThumbError, ThumbResult};
 
 const IMAGE_WEBP_MIME: &str = "image/webp";
 
@@ -19,13 +19,18 @@ pub fn read_image<R: BufRead + Seek>(reader: R, mime: Mime) -> ThumbResult<Dynam
 fn read_webp_image<R: Read>(mut reader: R) -> ThumbResult<DynamicImage> {
     let mut buf = Vec::new();
     reader.read_to_end(&mut buf)?;
-    let webp_image = WebpDecoder::new(&buf).decode().ok_or_else(|| ThumbError::Decode)?;
+    let webp_image = WebpDecoder::new(&buf)
+        .decode()
+        .ok_or_else(|| ThumbError::Decode)?;
 
     Ok(webp_image.to_image())
 }
 
 /// Reads a generic image
-fn read_generic_image<R: BufRead + Seek>(reader: R, format: Option<ImageFormat>) -> ThumbResult<DynamicImage> {
+fn read_generic_image<R: BufRead + Seek>(
+    reader: R,
+    format: Option<ImageFormat>,
+) -> ThumbResult<DynamicImage> {
     let reader = if let Some(format) = format {
         ImageReader::with_format(reader, format)
     } else {
@@ -36,6 +41,7 @@ fn read_generic_image<R: BufRead + Seek>(reader: R, format: Option<ImageFormat>)
     Ok(image)
 }
 
+#[allow(clippy::needless_pass_by_value)]
 fn mime_to_image_format(mime: Mime) -> Option<ImageFormat> {
     match mime.subtype().as_str() {
         "png" => Some(ImageFormat::Png),

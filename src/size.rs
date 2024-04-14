@@ -1,4 +1,3 @@
-
 /// Represents fixed sizes of a thumbnail
 #[derive(Clone, Copy, Debug)]
 pub enum ThumbnailSize {
@@ -7,18 +6,18 @@ pub enum ThumbnailSize {
     Medium,
     Large,
     Larger,
-    Custom((u32, u32))
+    Custom((u32, u32)),
 }
 
 impl ThumbnailSize {
-    pub fn dimensions(&self) -> (u32, u32) {
+    pub const fn dimensions(&self) -> (u32, u32) {
         match self {
-            ThumbnailSize::Icon => (64, 64),
-            ThumbnailSize::Small => (128, 128),
-            ThumbnailSize::Medium => (256, 256),
-            ThumbnailSize::Large => (512, 512),
-            ThumbnailSize::Larger => (1024, 1024),
-            ThumbnailSize::Custom(size) => *size,
+            Self::Icon => (64, 64),
+            Self::Small => (128, 128),
+            Self::Medium => (256, 256),
+            Self::Large => (512, 512),
+            Self::Larger => (1024, 1024),
+            Self::Custom(size) => *size,
         }
     }
 }

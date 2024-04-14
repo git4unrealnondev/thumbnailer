@@ -1,6 +1,6 @@
-const PNG_BYTES: &'static [u8] = include_bytes!("assets/test.png");
-const JPG_BYTES: &'static [u8] = include_bytes!("assets/test.jpg");
-const WEBP_BYTES: &'static [u8] = include_bytes!("assets/test.webp");
+const PNG_BYTES: &[u8] = include_bytes!("assets/test.png");
+const JPG_BYTES: &[u8] = include_bytes!("assets/test.jpg");
+const WEBP_BYTES: &[u8] = include_bytes!("assets/test.webp");
 
 use crate::ImageType::{Jpeg, Png, Webp};
 use mime::Mime;

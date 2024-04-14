@@ -6,7 +6,7 @@ use std::str::FromStr;
 use thumbnailer::error::ThumbError;
 use thumbnailer::{create_thumbnails, ThumbnailSize};
 
-const VIDEO_BYTES: &'static [u8] = include_bytes!("assets/test.mp4");
+const VIDEO_BYTES: &[u8] = include_bytes!("assets/test.mp4");
 
 #[test]
 fn it_creates_thumbnails_for_mp4() {
@@ -23,14 +23,14 @@ fn it_creates_thumbnails_for_mp4() {
 
     match result {
         Ok(_) => {
-            assert!(true)
+            assert!(true);
         }
         Err(e) => match e {
             ThumbError::Unsupported(_) => {
                 assert!(true, "ffmpeg is not installed");
             }
             e => {
-                panic!("failed to create thumbnails {}", e);
+                panic!("failed to create thumbnails {e}");
             }
         },
     }

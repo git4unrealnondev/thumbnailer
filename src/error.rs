@@ -23,12 +23,12 @@ pub enum ThumbError {
 impl Display for ThumbError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            ThumbError::IO(_) => write!(f, "an io error occurred"),
-            ThumbError::Image(e) => write!(f, "an image error occurred {}", e),
-            ThumbError::Decode => write!(f, "failed to decode image"),
-            ThumbError::Unsupported(mime) => write!(f, "Unsupported media type {}", mime),
-            ThumbError::NullVideo => write!(f, "no video data found in file"),
-            ThumbError::FFMPEG(e) => write!(f, "ffmpeg error: {}", e),
+            Self::IO(_) => write!(f, "an io error occurred"),
+            Self::Image(e) => write!(f, "an image error occurred {e}"),
+            Self::Decode => write!(f, "failed to decode image"),
+            Self::Unsupported(mime) => write!(f, "Unsupported media type {mime}"),
+            Self::NullVideo => write!(f, "no video data found in file"),
+            Self::FFMPEG(e) => write!(f, "ffmpeg error: {e}"),
         }
     }
 }
@@ -36,8 +36,8 @@ impl Display for ThumbError {
 impl std::error::Error for ThumbError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            ThumbError::IO(e) => e.source(),
-            ThumbError::Image(i) => i.source(),
+            Self::IO(e) => e.source(),
+            Self::Image(i) => i.source(),
             _ => None,
         }
     }

@@ -14,7 +14,7 @@ pub fn get_png_frame(video_file: &str, index: usize) -> ThumbResult<Vec<u8>> {
         "-i",
         video_file,
         "-vf",
-        format!("select=eq(n\\,{})", index).as_str(),
+        format!("select=eq(n\\,{index})").as_str(),
         "-vframes",
         "1",
         "-c:v",
@@ -35,7 +35,7 @@ fn ffmpeg<I: IntoIterator<Item = S>, S: AsRef<OsStr>>(args: I) -> ThumbResult<Ve
         .spawn()?;
 
     let output = child.wait_with_output()?;
-    if output.status.success() && output.stdout.len() > 0 {
+    if output.status.success() && !output.stdout.is_empty() {
         Ok(output.stdout)
     } else {
         Err(ThumbError::FFMPEG(
@@ -47,12 +47,6 @@ fn ffmpeg<I: IntoIterator<Item = S>, S: AsRef<OsStr>>(args: I) -> ThumbResult<Ve
 pub fn is_ffmpeg_installed() -> bool {
     match Command::new("ffmpeg").args(["-loglevel", "quiet"]).spawn() {
         Ok(_) => true,
-        Err(e) => {
-            if let ErrorKind::NotFound = e.kind() {
-                false
-            } else {
-                true
-            }
-        }
+        Err(e) => !matches!(e.kind(), ErrorKind::NotFound),
     }
 }
