@@ -11,9 +11,9 @@ repository = "https://github.com/Trivernis/thumbnailer"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-webp = "0.2.7"
+webp = "0.3.0"
 mime = "0.3.17"
 rayon = "1.10.0"
 tempfile = "3.10.1"
-image= "0.25.1"
+image = { version = "^0.25.0", default-features = false, features=["jpeg"]}
 lazy_static = "1.4.0"
