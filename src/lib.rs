@@ -21,7 +21,7 @@ use crate::error::ThumbResult;
 use file_format::FileFormat;
 use image::{DynamicImage, GenericImageView, ImageFormat};
 use rayon::prelude::*;
-use std::io::{BufRead, Seek, Write};
+use std::io::{BufRead, BufReader, Seek, Write};
 
 use crate::formats::get_base_image;
 pub use size::ThumbnailSize;
@@ -114,6 +114,30 @@ pub fn create_thumbnails<R: BufRead + Seek, I: IntoIterator<Item = ThumbnailSize
     sizes: I,
 ) -> ThumbResult<Vec<Thumbnail>> {
     let image = get_base_image(reader, mime)?;
+    let sizes: Vec<ThumbnailSize> = sizes.into_iter().collect();
+    let thumbnails = resize_images(image, &sizes, FilterType::Lanczos3)
+        .into_iter()
+        .map(|image| Thumbnail { inner: image })
+        .collect();
+
+    Ok(thumbnails)
+}
+
+///
+/// Creates thumbnail of requestes size despite not knowing the mime.
+///
+pub fn create_thumbnails_unknown_type<R: BufRead + Seek, I: IntoIterator<Item = ThumbnailSize>>(
+    reader: R,
+    sizes: I,
+) -> ThumbResult<Vec<Thumbnail>> {
+    let mut temp = BufReader::new(reader);
+    let mut temp1 = temp.fill_buf().unwrap();
+    let le = temp1.len();
+    let temp2 = &temp1[..];
+    let mime = FileFormat::from_bytes(temp2);
+    temp1.consume(le);
+
+    let image = get_base_image(temp, mime)?;
     let sizes: Vec<ThumbnailSize> = sizes.into_iter().collect();
     let thumbnails = resize_images(image, &sizes, FilterType::Lanczos3)
         .into_iter()

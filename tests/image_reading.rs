@@ -7,7 +7,7 @@ use file_format::FileFormat;
 use std::io::Cursor;
 use std::str::FromStr;
 use thumbnailer::error::ThumbResult;
-use thumbnailer::{create_thumbnails, Thumbnail, ThumbnailSize};
+use thumbnailer::{create_thumbnails, create_thumbnails_unknown_type, Thumbnail, ThumbnailSize};
 
 enum ImageType {
     Png,
@@ -59,6 +59,50 @@ fn it_creates_medium_thumbnails_for_webp() {
 fn it_creates_large_thumbnails_for_webp() {
     create_thumbnail(Webp, ThumbnailSize::Large).unwrap();
 }
+#[test]
+fn it_creates_small_thumbnails_for_png_unknown() {
+    create_thumbnails_unknown(Png, ThumbnailSize::Small).unwrap();
+}
+
+#[test]
+fn it_creates_medium_thumbnails_for_png_unknown() {
+    create_thumbnails_unknown(Png, ThumbnailSize::Medium).unwrap();
+}
+
+#[test]
+fn it_creates_large_thumbnails_for_png_unknown() {
+    create_thumbnails_unknown(Png, ThumbnailSize::Large).unwrap();
+}
+
+#[test]
+fn it_creates_small_thumbnails_for_jpeg_unknown() {
+    create_thumbnails_unknown(Jpeg, ThumbnailSize::Small).unwrap();
+}
+
+#[test]
+fn it_creates_medium_thumbnails_for_jpeg_unknown() {
+    create_thumbnails_unknown(Jpeg, ThumbnailSize::Medium).unwrap();
+}
+
+#[test]
+fn it_creates_large_thumbnails_for_jpeg_unknown() {
+    create_thumbnails_unknown(Jpeg, ThumbnailSize::Large).unwrap();
+}
+
+#[test]
+fn it_creates_small_thumbnails_for_webp_unknown() {
+    create_thumbnails_unknown(Webp, ThumbnailSize::Small).unwrap();
+}
+
+#[test]
+fn it_creates_medium_thumbnails_for_webp_unknown() {
+    create_thumbnails_unknown(Webp, ThumbnailSize::Medium).unwrap();
+}
+
+#[test]
+fn it_creates_large_thumbnails_for_webp_unknown() {
+    create_thumbnails_unknown(Webp, ThumbnailSize::Large).unwrap();
+}
 
 fn create_thumbnail(image_type: ImageType, size: ThumbnailSize) -> ThumbResult<Vec<Thumbnail>> {
     match image_type {
@@ -73,6 +117,25 @@ fn create_thumbnail(image_type: ImageType, size: ThumbnailSize) -> ThumbResult<V
         ImageType::Webp => {
             let reader = Cursor::new(WEBP_BYTES);
             create_thumbnails(reader, FileFormat::Webp, [size])
+        }
+    }
+}
+fn create_thumbnails_unknown(
+    image_type: ImageType,
+    size: ThumbnailSize,
+) -> ThumbResult<Vec<Thumbnail>> {
+    match image_type {
+        ImageType::Png => {
+            let mut reader = Cursor::new(PNG_BYTES);
+            create_thumbnails_unknown_type(reader, [size])
+        }
+        ImageType::Jpeg => {
+            let mut reader = Cursor::new(JPG_BYTES);
+            create_thumbnails_unknown_type(reader, [size])
+        }
+        ImageType::Webp => {
+            let mut reader = Cursor::new(WEBP_BYTES);
+            create_thumbnails_unknown_type(reader, [size])
         }
     }
 }
