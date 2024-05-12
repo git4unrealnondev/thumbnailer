@@ -81,6 +81,14 @@ impl Thumbnail {
 
         Ok(())
     }
+    /// Writes the bytes of the image in a webp format
+    #[cfg(feature = "webp")]
+    pub fn write_webp<W: Write + Seek>(self, writer: &mut W) -> ThumbResult<()> {
+        let image = DynamicImage::ImageRgba8(self.inner.into_rgba8());
+        image.write_to(writer, ImageFormat::WebP)?;
+
+        Ok(())
+    }
 
     /// Returns the size of the thumbnail as width,  height
     pub fn size(&self) -> (u32, u32) {
