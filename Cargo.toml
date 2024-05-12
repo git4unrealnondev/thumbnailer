@@ -15,5 +15,5 @@ webp = "0.3.0"
 mime = "0.3.17"
 rayon = "1.10.0"
 tempfile = "3.10.1"
-image = { version = "^0.25.0", default-features = false, features=["jpeg"]}
+image = { version = "^0.25.0", default-features = false, features=["jpeg", "png"]}
 lazy_static = "1.4.0"
