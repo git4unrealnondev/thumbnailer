@@ -1,5 +1,5 @@
+use file_format::FileFormat;
 use image::ImageError;
-use mime::Mime;
 use std::fmt::{Debug, Display, Formatter};
 use std::io;
 
@@ -8,15 +8,10 @@ pub type ThumbResult<T> = Result<T, ThumbError>;
 #[derive(Debug)]
 pub enum ThumbError {
     IO(io::Error),
-
     Image(image::error::ImageError),
-
     Decode,
-
-    Unsupported(Mime),
-
+    Unsupported(FileFormat),
     NullVideo,
-
     FFMPEG(String),
 }
 

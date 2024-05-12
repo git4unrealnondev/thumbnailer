@@ -1,18 +1,22 @@
 use crate::error::{ThumbError, ThumbResult};
+use file_format::{FileFormat, Kind};
 use image::io::Reader as ImageReader;
 use image::{DynamicImage, ImageFormat};
-use mime::Mime;
 use std::io::{BufRead, Read, Seek};
 use webp::Decoder as WebpDecoder;
 
 const IMAGE_WEBP_MIME: &str = "image/webp";
 
 /// Reads an image with a known mime type
-pub fn read_image<R: BufRead + Seek>(reader: R, mime: Mime) -> ThumbResult<DynamicImage> {
-    match mime.essence_str() {
+pub fn read_image<R: BufRead + Seek>(reader: R, format: FileFormat) -> ThumbResult<DynamicImage> {
+    match format {
+        FileFormat::Webp => read_webp_image(reader),
+        _ => read_generic_image(reader, mime_to_image_format(format)),
+    }
+    /* match mime.essence_str() {
         IMAGE_WEBP_MIME => read_webp_image(reader),
         _ => read_generic_image(reader, mime_to_image_format(mime)),
-    }
+    }*/
 }
 
 /// Reads a webp image
@@ -42,12 +46,12 @@ fn read_generic_image<R: BufRead + Seek>(
 }
 
 #[allow(clippy::needless_pass_by_value)]
-fn mime_to_image_format(mime: Mime) -> Option<ImageFormat> {
-    match mime.subtype().as_str() {
-        "png" => Some(ImageFormat::Png),
-        "jpeg" => Some(ImageFormat::Jpeg),
-        "bmp" => Some(ImageFormat::Bmp),
-        "gif" => Some(ImageFormat::Gif),
+fn mime_to_image_format(mime: FileFormat) -> Option<ImageFormat> {
+    match mime {
+        FileFormat::PortableNetworkGraphics => Some(ImageFormat::Png),
+        FileFormat::JointPhotographicExpertsGroup => Some(ImageFormat::Jpeg),
+        FileFormat::WindowsBitmap => Some(ImageFormat::Bmp),
+        FileFormat::GraphicsInterchangeFormat => Some(ImageFormat::Gif),
         _ => None,
     }
 }

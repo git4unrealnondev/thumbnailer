@@ -1,4 +1,4 @@
-use mime::Mime;
+use file_format::FileFormat;
 use std::io::Cursor;
 use std::str::FromStr;
 use thumbnailer::error::ThumbResult;
@@ -116,16 +116,25 @@ fn write_thumbnail(
     let thumb = match source_format {
         SourceFormat::Png => {
             let reader = Cursor::new(PNG_BYTES);
-            create_thumbnails(reader, mime::IMAGE_PNG, [ThumbnailSize::Medium]).unwrap()
+            create_thumbnails(
+                reader,
+                FileFormat::PortableNetworkGraphics,
+                [ThumbnailSize::Medium],
+            )
+            .unwrap()
         }
         SourceFormat::Jpeg => {
             let reader = Cursor::new(JPG_BYTES);
-            create_thumbnails(reader, mime::IMAGE_JPEG, [ThumbnailSize::Medium]).unwrap()
+            create_thumbnails(
+                reader,
+                FileFormat::JointPhotographicExpertsGroup,
+                [ThumbnailSize::Medium],
+            )
+            .unwrap()
         }
         SourceFormat::Webp => {
             let reader = Cursor::new(WEBP_BYTES);
-            let webp_mime = Mime::from_str("image/webp").unwrap();
-            create_thumbnails(reader, webp_mime, [ThumbnailSize::Medium]).unwrap()
+            create_thumbnails(reader, FileFormat::Webp, [ThumbnailSize::Medium]).unwrap()
         }
     }
     .pop()
@@ -148,14 +157,19 @@ fn write_thumbnail_samplefilter(
     let thumb = match source_format {
         SourceFormat::Png => {
             let reader = Cursor::new(PNG_BYTES);
-            create_thumbnails_samplefilter(reader, mime::IMAGE_PNG, [ThumbnailSize::Medium], filter)
-                .unwrap()
+            create_thumbnails_samplefilter(
+                reader,
+                FileFormat::PortableNetworkGraphics,
+                [ThumbnailSize::Medium],
+                filter,
+            )
+            .unwrap()
         }
         SourceFormat::Jpeg => {
             let reader = Cursor::new(JPG_BYTES);
             create_thumbnails_samplefilter(
                 reader,
-                mime::IMAGE_JPEG,
+                FileFormat::JointPhotographicExpertsGroup,
                 [ThumbnailSize::Medium],
                 filter,
             )
@@ -163,9 +177,13 @@ fn write_thumbnail_samplefilter(
         }
         SourceFormat::Webp => {
             let reader = Cursor::new(WEBP_BYTES);
-            let webp_mime = Mime::from_str("image/webp").unwrap();
-            create_thumbnails_samplefilter(reader, webp_mime, [ThumbnailSize::Medium], filter)
-                .unwrap()
+            create_thumbnails_samplefilter(
+                reader,
+                FileFormat::Webp,
+                [ThumbnailSize::Medium],
+                filter,
+            )
+            .unwrap()
         }
     }
     .pop()

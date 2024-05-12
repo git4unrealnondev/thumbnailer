@@ -1,6 +1,6 @@
 extern crate core;
 
-use mime::Mime;
+use file_format::FileFormat;
 use std::io::Cursor;
 use std::str::FromStr;
 use thumbnailer::error::ThumbError;
@@ -13,7 +13,7 @@ fn it_creates_thumbnails_for_mp4() {
     let reader = Cursor::new(VIDEO_BYTES);
     let result = create_thumbnails(
         reader,
-        Mime::from_str("video/mp4").unwrap(),
+        FileFormat::Mpeg4Part14Video,
         [
             ThumbnailSize::Small,
             ThumbnailSize::Medium,

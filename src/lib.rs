@@ -8,19 +8,18 @@
 //! use std::fs::File;
 //! use std::io::BufReader;
 //! use std::io::Cursor;
-//!
+//! use file_format::FileFormat;
 //! let file = File::open("tests/assets/test.png").unwrap();
 //! let reader = BufReader::new(file);
-//! let mut  thumbnails = create_thumbnails(reader, mime::IMAGE_PNG, [ThumbnailSize::Small, ThumbnailSize::Medium]).unwrap();
+//! let mut  thumbnails = create_thumbnails(reader, FileFormat::PortableNetworkGraphics, [ThumbnailSize::Small, ThumbnailSize::Medium]).unwrap();
 //!
 //! let thumbnail = thumbnails.pop().unwrap();
 //! let mut buf = Cursor::new(Vec::new());
 //! thumbnail.write_png(&mut buf).unwrap();
 //! ```
-
 use crate::error::ThumbResult;
+use file_format::FileFormat;
 use image::{DynamicImage, GenericImageView, ImageFormat};
-use mime::Mime;
 use rayon::prelude::*;
 use std::io::{BufRead, Seek, Write};
 
@@ -93,7 +92,7 @@ impl Thumbnail {
 /// the mime describing the contents type
 pub fn create_thumbnails_samplefilter<R: BufRead + Seek, I: IntoIterator<Item = ThumbnailSize>>(
     reader: R,
-    mime: Mime,
+    mime: FileFormat,
     sizes: I,
     filter: FilterType,
 ) -> ThumbResult<Vec<Thumbnail>> {
@@ -111,7 +110,7 @@ pub fn create_thumbnails_samplefilter<R: BufRead + Seek, I: IntoIterator<Item = 
 /// the mime describing the contents type
 pub fn create_thumbnails<R: BufRead + Seek, I: IntoIterator<Item = ThumbnailSize>>(
     reader: R,
-    mime: Mime,
+    mime: FileFormat,
     sizes: I,
 ) -> ThumbResult<Vec<Thumbnail>> {
     let image = get_base_image(reader, mime)?;

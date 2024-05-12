@@ -3,7 +3,7 @@ const JPG_BYTES: &[u8] = include_bytes!("assets/test.jpg");
 const WEBP_BYTES: &[u8] = include_bytes!("assets/test.webp");
 
 use crate::ImageType::{Jpeg, Png, Webp};
-use mime::Mime;
+use file_format::FileFormat;
 use std::io::Cursor;
 use std::str::FromStr;
 use thumbnailer::error::ThumbResult;
@@ -64,16 +64,15 @@ fn create_thumbnail(image_type: ImageType, size: ThumbnailSize) -> ThumbResult<V
     match image_type {
         ImageType::Png => {
             let reader = Cursor::new(PNG_BYTES);
-            create_thumbnails(reader, mime::IMAGE_PNG, [size])
+            create_thumbnails(reader, FileFormat::PortableNetworkGraphics, [size])
         }
         ImageType::Jpeg => {
             let reader = Cursor::new(JPG_BYTES);
-            create_thumbnails(reader, mime::IMAGE_JPEG, [size])
+            create_thumbnails(reader, FileFormat::JointPhotographicExpertsGroup, [size])
         }
         ImageType::Webp => {
             let reader = Cursor::new(WEBP_BYTES);
-            let webp_mime = Mime::from_str("image/webp").unwrap();
-            create_thumbnails(reader, webp_mime, [size])
+            create_thumbnails(reader, FileFormat::Webp, [size])
         }
     }
 }
