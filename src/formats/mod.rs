@@ -14,6 +14,10 @@ pub fn get_base_image<R: BufRead + Seek>(reader: R, mime: FileFormat) -> ThumbRe
     match mime.kind() {
         Kind::Image => read_image(reader, mime),
         Kind::Video => get_video_frame(reader, mime),
+        Kind::Other => match mime {
+            FileFormat::Mpeg4Part14 => get_video_frame(reader, mime),
+            _ => Err(ThumbError::Unsupported(mime)),
+        },
         _ => Err(ThumbError::Unsupported(mime)),
     }
 }

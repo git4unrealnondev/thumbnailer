@@ -1,11 +1,9 @@
 use crate::error::{ThumbError, ThumbResult};
-use file_format::{FileFormat, Kind};
+use file_format::FileFormat;
 use image::io::Reader as ImageReader;
 use image::{DynamicImage, ImageFormat};
 use std::io::{BufRead, Read, Seek};
 use webp::Decoder as WebpDecoder;
-
-const IMAGE_WEBP_MIME: &str = "image/webp";
 
 /// Reads an image with a known mime type
 pub fn read_image<R: BufRead + Seek>(reader: R, format: FileFormat) -> ThumbResult<DynamicImage> {
