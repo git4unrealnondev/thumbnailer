@@ -35,6 +35,7 @@ pub(crate) mod utils;
 #[derive(Clone, Debug)]
 pub struct Thumbnail {
     inner: DynamicImage,
+    mime: FileFormat,
 }
 
 #[derive(Clone, Debug)]
@@ -90,6 +91,11 @@ impl Thumbnail {
         Ok(())
     }
 
+    /// Returns the fileformat that it's parsed
+    pub fn return_fileformat(&self) -> FileFormat {
+        self.mime
+    }
+
     /// Returns the size of the thumbnail as width,  height
     pub fn size(&self) -> (u32, u32) {
         self.inner.dimensions()
@@ -108,7 +114,7 @@ pub fn create_thumbnails_samplefilter<R: BufRead + Seek, I: IntoIterator<Item = 
     let sizes: Vec<ThumbnailSize> = sizes.into_iter().collect();
     let thumbnails = resize_images(image, &sizes, filter)
         .into_iter()
-        .map(|image| Thumbnail { inner: image })
+        .map(|image| Thumbnail { inner: image, mime })
         .collect();
 
     Ok(thumbnails)
@@ -125,7 +131,7 @@ pub fn create_thumbnails<R: BufRead + Seek, I: IntoIterator<Item = ThumbnailSize
     let sizes: Vec<ThumbnailSize> = sizes.into_iter().collect();
     let thumbnails = resize_images(image, &sizes, FilterType::Lanczos3)
         .into_iter()
-        .map(|image| Thumbnail { inner: image })
+        .map(|image| Thumbnail { inner: image, mime })
         .collect();
 
     Ok(thumbnails)
@@ -149,7 +155,7 @@ pub fn create_thumbnails_unknown_type<R: BufRead + Seek, I: IntoIterator<Item = 
     let sizes: Vec<ThumbnailSize> = sizes.into_iter().collect();
     let thumbnails = resize_images(image, &sizes, FilterType::Lanczos3)
         .into_iter()
-        .map(|image| Thumbnail { inner: image })
+        .map(|image| Thumbnail { inner: image, mime })
         .collect();
 
     Ok(thumbnails)
