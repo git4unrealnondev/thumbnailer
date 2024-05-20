@@ -178,3 +178,69 @@ fn resize_images(
         })
         .collect()
 }
+
+///
+/// Get's multiple frames if they exist
+///
+pub fn get_video_frame_multiple<R: BufRead + Seek>(
+    mut reader: R,
+    mime: FileFormat,
+    ttl: usize,   // total number of frames to get
+    split: usize, // amount of frames inbetween to get
+) -> ThumbResult<Vec<DynamicImage>> {
+    use crate::error::{self, ThumbError, ThumbResult};
+    use crate::utils::ffmpeg_cli::{get_png_frame, is_ffmpeg_installed};
+    use image::io::Reader as ImageReader;
+    use image::{DynamicImage, ImageFormat};
+    use std::io::{BufRead, Cursor, ErrorKind, Seek};
+    lazy_static::lazy_static! { static ref FFMPEG_INSTALLED: bool = is_ffmpeg_installed(); }
+
+    if !*FFMPEG_INSTALLED {
+        return Err(ThumbError::Unsupported(mime));
+    }
+
+    let tempdir = tempfile::tempdir()?;
+    let path = std::path::PathBuf::from(tempdir.path())
+        .join("video")
+        .with_extension(mime.extension());
+
+    let mut buf = Vec::new();
+    reader.read_to_end(&mut buf)?;
+    std::fs::write(&path, buf)?;
+
+    let mut buf = Vec::new();
+    reader.read_to_end(&mut buf)?;
+
+    let mut frames = Vec::with_capacity(ttl);
+    let ttlamt = match ttl {
+        0 => 0,
+        _ => ttl - 1,
+    };
+    let png_bytes = get_png_frame(
+        path.to_str()
+            .expect("path to tmpdir contains invalid characters"),
+        0,
+    )?; // take the 16th frame
+    let img = ImageReader::with_format(Cursor::new(png_bytes), ImageFormat::Png).decode();
+    match img {
+        Ok(img) => frames.push(img),
+        Err(_) => return Err(error::ThumbError::Decode),
+    }
+
+    for inve in 1..=ttlamt {
+        let frame_to_get = inve * split;
+        let png_bytes = get_png_frame(
+            path.to_str()
+                .expect("path to tmpdir contains invalid characters"),
+            frame_to_get,
+        )?; // take the 16th frame
+        let img = ImageReader::with_format(Cursor::new(png_bytes), ImageFormat::Png).decode();
+        match img {
+            Ok(img) => frames.push(img),
+            Err(_) => break,
+        }
+    }
+    tempdir.close()?;
+
+    Ok(frames)
+}
