@@ -27,6 +27,27 @@ pub fn get_png_frame(video_file: &str, index: usize) -> ThumbResult<Vec<u8>> {
     ])
 }
 
+/// Runs ffmpeg to retrieve a png video frame
+pub fn get_webp_frame(video_file: &str, index: usize) -> ThumbResult<Vec<u8>> {
+    ffmpeg([
+        "-loglevel",
+        "panic",
+        "-i",
+        video_file,
+        "-vf",
+        format!("select=eq(n\\,{index})").as_str(),
+        "-vframes",
+        "1",
+        "-c:v",
+        "webp",
+        "-movflags",
+        "empty_moov",
+        "-f",
+        "image2pipe",
+        "pipe:1",
+    ])
+}
+
 /// Runs ffmpeg with the given args
 fn ffmpeg<I: IntoIterator<Item = S>, S: AsRef<OsStr>>(args: I) -> ThumbResult<Vec<u8>> {
     let child = Command::new(FFMPEG)

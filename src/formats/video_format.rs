@@ -13,7 +13,6 @@ pub fn get_video_frame<R: BufRead + Seek>(
     mime: FileFormat,
 ) -> ThumbResult<DynamicImage> {
     lazy_static::lazy_static! { static ref FFMPEG_INSTALLED: bool = is_ffmpeg_installed(); }
-
     if !*FFMPEG_INSTALLED {
         return Err(ThumbError::Unsupported(mime));
     }

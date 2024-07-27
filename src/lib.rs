@@ -17,7 +17,7 @@
 //! let mut buf = Cursor::new(Vec::new());
 //! thumbnail.write_png(&mut buf).unwrap();
 //! ```
-use crate::error::ThumbResult;
+use crate::{error::ThumbResult, utils::ffmpeg_cli::get_webp_frame};
 use file_format::FileFormat;
 use image::{DynamicImage, GenericImageView, ImageFormat};
 use rayon::prelude::*;
@@ -85,9 +85,12 @@ impl Thumbnail {
     /// Writes the bytes of the image in a webp format
     #[cfg(feature = "webp")]
     pub fn write_webp<W: Write + Seek>(self, writer: &mut W) -> ThumbResult<()> {
+        use image::EncodableLayout;
+        use webp;
         let image = DynamicImage::ImageRgba8(self.inner.into_rgba8());
-        image.write_to(writer, ImageFormat::WebP)?;
-
+        let mut webp = webp::Encoder::from_image(&image).unwrap();
+        let out = webp.encode(70.0);
+        writer.write_all(out.as_bytes());
         Ok(())
     }
 
@@ -170,7 +173,7 @@ fn resize_images(
         .into_par_iter()
         .map(|size| {
             let (width, height) = size.dimensions();
-            image.resize(
+            image.resize_exact(
                 width,
                 height,
                 image::imageops::FilterType::from(filter_type.clone()),
@@ -185,16 +188,16 @@ fn resize_images(
 pub fn get_video_frame_multiple<R: BufRead + Seek>(
     mut reader: R,
     mime: FileFormat,
-    ttl: usize,   // total number of frames to get
-    split: usize, // amount of frames inbetween to get
+    ttl: usize,                // total number of frames to get
+    split: usize,              // amount of frames inbetween to get
+    scale: Option<(u32, u32)>, // Scales the image
 ) -> ThumbResult<Vec<DynamicImage>> {
     use crate::error::{self, ThumbError, ThumbResult};
-    use crate::utils::ffmpeg_cli::{get_png_frame, is_ffmpeg_installed};
+    use crate::utils::ffmpeg_cli::{get_webp_frame, is_ffmpeg_installed};
     use image::io::Reader as ImageReader;
     use image::{DynamicImage, ImageFormat};
     use std::io::{BufRead, Cursor, ErrorKind, Seek};
     lazy_static::lazy_static! { static ref FFMPEG_INSTALLED: bool = is_ffmpeg_installed(); }
-
     if !*FFMPEG_INSTALLED {
         return Err(ThumbError::Unsupported(mime));
     }
@@ -213,30 +216,33 @@ pub fn get_video_frame_multiple<R: BufRead + Seek>(
 
     let mut frames = Vec::with_capacity(ttl);
     let ttlamt = match ttl {
-        0 => 0,
+        0 => 1,
         _ => ttl - 1,
     };
-    let png_bytes = get_png_frame(
-        path.to_str()
-            .expect("path to tmpdir contains invalid characters"),
-        0,
-    )?; // take the 16th frame
-    let img = ImageReader::with_format(Cursor::new(png_bytes), ImageFormat::Png).decode();
-    match img {
-        Ok(img) => frames.push(img),
-        Err(_) => return Err(error::ThumbError::Decode),
-    }
-
     for inve in 1..=ttlamt {
         let frame_to_get = inve * split;
-        let png_bytes = get_png_frame(
+        let png_bytes = match get_webp_frame(
             path.to_str()
                 .expect("path to tmpdir contains invalid characters"),
             frame_to_get,
-        )?; // take the 16th frame
-        let img = ImageReader::with_format(Cursor::new(png_bytes), ImageFormat::Png).decode();
+        ) {
+            Err(_) => {
+                return Ok(frames);
+            }
+            Ok(out) => out,
+        }; // take the 16th frame
+        let img = ImageReader::with_format(Cursor::new(png_bytes), ImageFormat::WebP).decode();
         match img {
-            Ok(img) => frames.push(img),
+            Ok(img) => {
+                if let Some(size) = scale {
+                    frames.push(
+                        resize_images(img, &[ThumbnailSize::Custom(size)], FilterType::Lanczos3)[0]
+                            .clone(),
+                    );
+                } else {
+                    frames.push(img);
+                }
+            }
             Err(_) => break,
         }
     }
